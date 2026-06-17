@@ -7,6 +7,7 @@ import (
 // LKELinodeStatus constants start with LKELinode and include
 // Linode API LKENodePool Linode Status values
 type LKELinodeStatus string
+type LKELinodeErrors string
 
 // LKENodePoolStatus constants reflect the current status of an LKENodePool
 const (
@@ -41,6 +42,7 @@ type LKENodePoolLinode struct {
 	ID         string          `json:"id"`
 	InstanceID int             `json:"instance_id"`
 	Status     LKELinodeStatus `json:"status"`
+	Errors     LKELinodeErrors `json:"errors,omitempty"`
 }
 
 // LKENodePoolTaintEffect represents the effect value of a taint
