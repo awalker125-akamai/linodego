@@ -212,6 +212,10 @@ type InstanceCreateOptions struct {
 
 	Kernel   *string `json:"kernel,omitzero"`
 	BootSize *int    `json:"boot_size,omitzero"`
+
+	// HostID pins the instance to a specific host. Used to co-locate RDMA
+	// instances on the same physical host.
+	HostID int `json:"host_id,omitzero"`
 }
 
 // InstanceCreatePlacementGroupOptions represents the placement group
