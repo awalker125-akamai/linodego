@@ -295,11 +295,13 @@ type requestParams struct {
 }
 
 func (c *Client) ErrorAndLogf(format string, args ...any) error {
+	err := fmt.Errorf(format, args...)
+
 	if c.debug && c.logger != nil {
-		c.logger.Errorf(format, args...)
+		c.logger.Errorf("%v", err)
 	}
 
-	return fmt.Errorf(format, args...)
+	return err
 }
 
 // SetRootCertificate adds a root certificate to the underlying TLS client config.
@@ -337,6 +339,8 @@ func (c *Client) SetRetries() *Client {
 		AddRetryCondition(TooManyRequestsRetryCondition).
 		AddRetryCondition(ServiceUnavailableRetryCondition).
 		AddRetryCondition(RequestTimeoutRetryCondition).
+		AddRetryCondition(RequestTransportTimeoutRetryCondition).
+		AddRetryCondition(RequestEOFRetryCondition).
 		AddRetryCondition(RequestGOAWAYRetryCondition).
 		AddRetryCondition(RequestNGINXRetryCondition).
 		SetRetryMaxWaitTime(APIRetryMaxWaitTime)

@@ -2,9 +2,12 @@ package linodego
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
+	"net"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 )
@@ -68,6 +71,31 @@ func TestServiceMaintenanceModeRetryCondition(t *testing.T) {
 
 	if retry := ServiceUnavailableRetryCondition(rawResponse, nil); retry {
 		t.Error("expected retry to be skipped due to maintenance mode header")
+	}
+}
+
+func TestRequestTransportTimeoutRetryCondition(t *testing.T) {
+	if retry := RequestTransportTimeoutRetryCondition(nil, context.DeadlineExceeded); !retry {
+		t.Error("expected context deadline exceeded to be retried")
+	}
+
+	if retry := RequestTransportTimeoutRetryCondition(nil, os.ErrDeadlineExceeded); !retry {
+		t.Error("expected os deadline exceeded to be retried")
+	}
+
+	timeoutErr := &net.DNSError{IsTimeout: true}
+	if retry := RequestTransportTimeoutRetryCondition(nil, timeoutErr); !retry {
+		t.Error("expected net timeout error to be retried")
+	}
+}
+
+func TestRequestEOFRetryCondition(t *testing.T) {
+	if retry := RequestEOFRetryCondition(nil, io.EOF); !retry {
+		t.Error("expected EOF to be retried")
+	}
+
+	if retry := RequestEOFRetryCondition(nil, io.ErrUnexpectedEOF); !retry {
+		t.Error("expected unexpected EOF to be retried")
 	}
 }
 
