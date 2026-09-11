@@ -2,11 +2,14 @@ package linodego
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -103,6 +106,23 @@ func RequestTimeoutRetryCondition(resp *http.Response, _ error) bool {
 
 func RequestGOAWAYRetryCondition(_ *http.Response, err error) bool {
 	return errors.As(err, &http2.GoAwayError{})
+}
+
+func RequestTransportTimeoutRetryCondition(_ *http.Response, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, os.ErrDeadlineExceeded) {
+		return true
+	}
+
+	var netErr net.Error
+	return errors.As(err, &netErr) && netErr.Timeout()
+}
+
+func RequestEOFRetryCondition(_ *http.Response, err error) bool {
+	return errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
 }
 
 func RequestNGINXRetryCondition(resp *http.Response, _ error) bool {
